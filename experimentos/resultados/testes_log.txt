@@ -1,0 +1,20 @@
+﻿OK
+python : test_distribuido (test_equivalencia.TestEquivalencia.test_distribuido) ... ok
+At line:1 char:550
++ ... es_log.txt; python -m unittest discover -s tests -v *>> experimentos/ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (test_distribuid...ribuido) ... ok:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+test_mais_trabalhadores_que_linhas (test_equivalencia.TestEquivalencia.test_mais_trabalhadores_que_linhas) ... ok
+test_processos (test_equivalencia.TestEquivalencia.test_processos) ... ok
+test_sequencial_igual_original (test_equivalencia.TestEquivalencia.test_sequencial_igual_original) ... ok
+test_threads (test_equivalencia.TestEquivalencia.test_threads) ... ok
+test_divisao_de_linhas (test_equivalencia.TestModelo.test_divisao_de_linhas) ... ok
+test_grade_inicial_igual_original (test_equivalencia.TestModelo.test_grade_inicial_igual_original) ... ok
+test_uniforme (test_equivalencia.TestModelo.test_uniforme) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 14.126s
+
+OK

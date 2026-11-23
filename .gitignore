@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Entrega (ZIP e vídeo — vídeos > 100 MB são bloqueados pelo GitHub)
+entrega/
+*.mp4
+*.zip
+
+# Editor / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Configurações locais do Claude Code
+.claude/

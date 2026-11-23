@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fake News Paralela e Distribuída</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  :root {
+    --ink: #0b0b0b; --ink2: #52514e; --muted: #8a8984; --bg: #fcfcfb; --plane: #f3f2ee;
+    --blue: #2a78d6; --orange: #eb6834; --aqua: #1baf7a; --yellow: #eda100; --red: #d6272a; --navy: #1f4e8c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #ddd; font-family: "Segoe UI", system-ui, sans-serif; color: var(--ink); }
+  .s { width: 1280px; height: 720px; background: var(--bg); position: relative; overflow: hidden;
+       page-break-after: always; break-after: page; padding: 56px 72px 48px; margin: 0 auto 16px; }
+  @media print { .s { margin: 0; } body { background: var(--bg); } }
+  .s h1 { font-size: 38px; margin: 0 0 22px; font-weight: 650; letter-spacing: -0.5px; }
+  .s h1 small { font-size: 20px; color: var(--ink2); font-weight: 400; margin-left: 10px; }
+  .s h2 { font-size: 22px; margin: 0 0 10px; color: var(--ink2); font-weight: 600; }
+  .s p, .s li { font-size: 21px; line-height: 1.42; }
+  .s ul { margin: 6px 0; padding-left: 26px; }
+  .s li { margin-bottom: 7px; }
+  .s ul.refs li { font-size: 16.5px; line-height: 1.32; margin-bottom: 5px; }
+  .s .pag { position: absolute; right: 30px; bottom: 18px; font-size: 13px; color: var(--muted); }
+  .s .tag { position: absolute; left: 72px; bottom: 18px; font-size: 13px; color: var(--muted); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+  .cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; }
+  .c55 { display: grid; grid-template-columns: 1.15fr 1fr; gap: 30px; align-items: start; }
+  .box { background: var(--plane); border-radius: 10px; padding: 16px 20px; }
+  .box h3 { margin: 0 0 6px; font-size: 19px; }
+  .box p, .box li { font-size: 17px; margin: 4px 0; }
+  code, .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.86em; background: #ebe9e3; padding: 1px 5px; border-radius: 4px; }
+  pre { font-family: Consolas, monospace; font-size: 14.5px; background: #1e1e1c; color: #f0efec; padding: 14px 16px; border-radius: 8px; line-height: 1.35; margin: 0; white-space: pre; }
+  pre .k { color: #86b6ef; } pre .c { color: #9a988f; } pre .s2 { color: #f0b37e; }
+  img.fig { max-width: 100%; max-height: 520px; display: block; margin: 0 auto; }
+  table { border-collapse: collapse; font-size: 16px; width: 100%; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid #e2e0da; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--ink2); font-weight: 600; border-bottom: 2px solid #c9c7bf; }
+  .big { font-size: 64px; font-weight: 700; color: var(--blue); line-height: 1; }
+  .note { font-size: 15px; color: var(--ink2); }
+  .dot { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+  .capa { background: linear-gradient(135deg, #102a4c 0%, #1f4e8c 55%, #2a78d6 100%); color: #fff; padding: 90px 90px; }
+  .capa h1 { font-size: 54px; color: #fff; margin-bottom: 14px; }
+  .capa p { color: #dce8f8; font-size: 24px; }
+  .grid-demo { display: grid; grid-template-columns: repeat(3, 46px); gap: 3px; }
+  .grid-demo div { width: 46px; height: 46px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- 1 CAPA -->
+<section class="s capa">
+  <p style="font-size:18px;letter-spacing:2px;text-transform:uppercase;color:#a9c8ee">EC48A · Desenvolvimento Paralelo e Distribuído · UTFPR · 2026/2</p>
+  <h1>Propagação de Fake News em<br>Sistemas Paralelos e Distribuídos</h1>
+  <p>Da simulação sequencial às versões com <b>threads</b>, <b>multiprocessing</b> e <b>sockets TCP</b></p>
+  <p style="margin-top:46px;font-size:22px;font-weight:600">Grupo 05</p>
+  <p style="font-size:19px;line-height:1.55;margin-top:4px">Carlos Haruhiko Iwata Junior — RA 1632752<br>
+     Leonardo Freitas dos Santos — RA 2465302<br>
+     Matheus Mondaini Alegre de Miranda — RA 2504219<br>
+     Vinicius Henrique de Oliveira Silva — RA 2525925</p>
+  <p style="font-size:17px;color:#a9c8ee">Novembro de 2026</p>
+</section>
+
+<!-- 2 PROBLEMA -->
+<section class="s">
+  <h1>O problema</h1>
+  <div class="c55">
+    <div>
+      <ul>
+        <li>Notícias falsas se espalham mais rápido e mais longe que as verdadeiras (Vosoughi et al., <i>Science</i> 2018).</li>
+        <li>Simulamos a propagação numa <b>população em grade</b> L × C: cada célula é uma pessoa que interage com seus 8 vizinhos.</li>
+        <li>O custo é <b>O(L · C · gerações)</b>: 2000×2000 × 40 gerações = 160 milhões de atualizações — em Python puro, minutos de CPU.</li>
+        <li>Objetivo: transformar o código sequencial fornecido em versões <b>paralela</b> e <b>distribuída</b>, medir <b>speedup</b>/<b>eficiência</b> e propor <b>melhorias</b>.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Requisitos atendidos</h3>
+      <ul>
+        <li>Paralela com <b>threads</b> (e <b>multiprocessing</b> para paralelismo real)</li>
+        <li>Distribuída com <b>sockets TCP</b>, troca de fronteiras entre processos</li>
+        <li>Divisão <b>explícita</b> da matriz — sem NumPy, Numba, frameworks</li>
+        <li>Mesmo resultado lógico do sequencial — <b>provado por testes</b> (hash SHA-256 da grade)</li>
+        <li>Experimentos variando tamanho, gerações, % inicial, nº de threads e de hosts</li>
+      </ul>
+    </div>
+  </div>
+  <span class="pag">2</span>
+</section>
+
+<!-- 3 MODELO -->
+<section class="s">
+  <h1>Modelo computacional <small>autômato celular · modelo de rumor Daley–Kendall</small></h1>
+  <div class="c55">
+    <div>
+      <p><span class="dot" style="background:#ebebe4;border:1px solid #bbb"></span><b>0 Ignorante</b> — ainda não acredita
+      <br><span class="dot" style="background:var(--red)"></span><b>1 Espalhador</b> — acredita e compartilha
+      <br><span class="dot" style="background:var(--navy)"></span><b>2 Inativo</b> — sabe, mas não compartilha mais</p>
+      <h2>Regra (atualização síncrona, geração g → g+1)</h2>
+      <ul>
+        <li>Ignorante com ≥ <b>limiar</b> vizinhos espalhadores → Espalhador <span class="note">(modelo de limiar — Granovetter 1978)</span></li>
+        <li>Espalhador → Inativo &nbsp;·&nbsp; Inativo → Inativo</li>
+        <li>A geração g+1 é calculada <b>somente</b> a partir da geração g (nada de atualização "ao vivo")</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Vizinhança de Moore</h2>
+      <div style="display:flex;gap:30px;align-items:center">
+        <div class="grid-demo">
+          <div style="background:var(--red)">E</div><div style="background:#cfcfc6"></div><div style="background:var(--red)">E</div>
+          <div style="background:#cfcfc6"></div><div style="background:#444;outline:3px solid var(--yellow)">X</div><div style="background:var(--navy)">N</div>
+          <div style="background:#cfcfc6"></div><div style="background:var(--red)">E</div><div style="background:#cfcfc6"></div>
+        </div>
+        <p style="font-size:18px">X tem <b>3</b> vizinhos espalhadores.<br>Com limiar 2 ou 3 → X vira <b>espalhador</b>.</p>
+      </div>
+      <p class="note" style="margin-top:16px">Ponto-chave para paralelizar: cada célula depende só dos 8 vizinhos da geração anterior → a grade pode ser dividida em blocos independentes, sincronizando apenas as <b>bordas</b>.</p>
+    </div>
+  </div>
+  <span class="pag">3</span>
+</section>
+
+<!-- 4 SEQUENCIAL -->
+<section class="s">
+  <h1>Solução sequencial <small>original → refatorada</small></h1>
+  <div class="cols">
+    <div class="box">
+      <h3>Original (FakeNews.py)</h3>
+      <ul>
+        <li>Lista de listas de inteiros</li>
+        <li><code>deepcopy</code> da grade inteira a cada geração</li>
+        <li>8 testes de limite <code>0 ≤ ni &lt; linhas</code> por célula</li>
+        <li>Segunda varredura completa só para contar estados</li>
+      </ul>
+    </div>
+    <div class="box" style="background:#e6f0fb">
+      <h3>Refatorada (fakenews/modelo.py)</h3>
+      <ul>
+        <li><b>bytearray</b> achatado: 1 byte por pessoa</li>
+        <li><b>Moldura de células-fantasma</b> (sempre ignorantes) → sem testes de limite</li>
+        <li><b>Buffer duplo</b> (troca de ponteiros, O(1)) no lugar do deepcopy</li>
+        <li>Contagem <b>fundida</b> ao cálculo</li>
+        <li>Mesmo sorteio inicial (<code>random.seed</code>) → <b>grade idêntica</b></li>
+      </ul>
+    </div>
+  </div>
+  <pre style="margin-top:18px"><span class="c"># índice da célula real (i, j) numa grade com moldura de largura W = C + 2</span>
+x = (i + 1) * W + (j + 1)
+k = (src[x-W-1]==1) + (src[x-W]==1) + (src[x-W+1]==1) + (src[x-1]==1) + (src[x+1]==1) \
+  + (src[x+W-1]==1) + (src[x+W]==1) + (src[x+W+1]==1)        <span class="c"># 8 vizinhos, sem if de borda</span></pre>
+  <span class="pag">4</span>
+</section>
+
+<!-- 5 NÚCLEO COMUM -->
+<section class="s">
+  <h1>Um núcleo, quatro execuções</h1>
+  <div class="c55">
+    <div>
+      <p>Todas as versões chamam o <b>mesmo kernel</b>:</p>
+      <pre><span class="k">def</span> kernel(src, dst, W, C, r0, r1, ctx, geracao):
+    <span class="c"># calcula a geração g+1 das linhas [r0, r1)</span>
+    <span class="c"># lê só src, escreve só dst[r0:r1]</span>
+    <span class="k">return</span> (ignorantes, espalhadores, inativos)</pre>
+      <ul style="margin-top:14px">
+        <li>Sequencial: <code>kernel(..., 1, L+1)</code> — a grade inteira</li>
+        <li>Threads / processos / trabalhadores: cada um chama com <b>sua faixa</b></li>
+        <li>Faixas disjuntas em <code>dst</code> ⇒ <b>sem condição de corrida</b></li>
+        <li>Diferença entre versões = <b>quem</b> executa cada faixa e <b>como</b> sincroniza</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Três kernels</h3>
+      <p><b>referencia</b> — célula a célula, fiel ao original (usado nos experimentos de escalabilidade: carga uniforme, CPU-bound)</p>
+      <p><b>otimizado</b> — soma por colunas: <code>col[j] = cima+meio+baixo</code>; vizinhos = <code>col[j-1]+col[j]+col[j+1]</code> (3 somas em vez de 8 comparações) e pulo de linhas sem espalhadores</p>
+      <p><b>estendido</b> — modelo com probabilidade, influenciadores, bots e céticos</p>
+    </div>
+  </div>
+  <span class="pag">5</span>
+</section>
+
+<!-- 6 DIVISÃO -->
+<section class="s">
+  <h1>Divisão da matriz <small>decomposição por faixas de linhas + halo</small></h1>
+  <div class="c55">
+    <svg viewBox="0 0 560 470" width="560" height="470" font-family="Segoe UI" font-size="15">
+      <rect x="40" y="10" width="330" height="450" fill="none" stroke="#8a8984" stroke-dasharray="4 4"/>
+      <text x="205" y="30" text-anchor="middle" fill="#8a8984" font-size="13">moldura (ghost) = sempre 0</text>
+      <rect x="55" y="40" width="300" height="130" fill="#2a78d6" opacity="0.85" rx="4"/>
+      <rect x="55" y="174" width="300" height="130" fill="#eb6834" opacity="0.85" rx="4"/>
+      <rect x="55" y="308" width="300" height="130" fill="#1baf7a" opacity="0.85" rx="4"/>
+      <text x="205" y="110" text-anchor="middle" fill="#fff" font-weight="700">faixa 0 · linhas 0..L/3−1</text>
+      <text x="205" y="244" text-anchor="middle" fill="#fff" font-weight="700">faixa 1</text>
+      <text x="205" y="378" text-anchor="middle" fill="#fff" font-weight="700">faixa 2</text>
+      <rect x="55" y="160" width="300" height="10" fill="#0b0b0b" opacity="0.55"/>
+      <rect x="55" y="174" width="300" height="10" fill="#0b0b0b" opacity="0.55"/>
+      <path d="M380 165 C 430 165, 430 179, 380 179" stroke="#0b0b0b" fill="none" stroke-width="2" marker-end="url(#a)"/>
+      <path d="M380 179 C 450 179, 450 165, 380 165" stroke="#0b0b0b" fill="none" stroke-width="2" opacity="0"/>
+      <text x="440" y="160" fill="#0b0b0b" font-size="14">troca de</text>
+      <text x="440" y="178" fill="#0b0b0b" font-size="14">bordas (1 linha</text>
+      <text x="440" y="196" fill="#0b0b0b" font-size="14">em cada sentido)</text>
+      <rect x="55" y="294" width="300" height="10" fill="#0b0b0b" opacity="0.55"/>
+      <rect x="55" y="308" width="300" height="10" fill="#0b0b0b" opacity="0.55"/>
+      <path d="M380 299 C 430 299, 430 313, 380 313" stroke="#0b0b0b" fill="none" stroke-width="2" marker-end="url(#a)"/>
+      <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0b0b0b"/></marker></defs>
+    </svg>
+    <div>
+      <ul>
+        <li><b>Faixas contíguas</b> de linhas; tamanhos diferem em no máx. 1 linha (balanceamento estático) — <code>dividir_linhas()</code></li>
+        <li>Para calcular sua faixa, cada trabalhador precisa da última linha da faixa de cima e da primeira da de baixo: o <b>halo</b> (Foster, 1995)</li>
+        <li>Faixas horizontais ⇒ cada fronteira é <b>1 linha contígua</b> de C bytes (cópia barata, 1 mensagem)</li>
+        <li>Comunicação por geração ∝ <b>C</b> (perímetro), cálculo ∝ <b>L·C/p</b> (área) → razão comunicação/cálculo cai quando a matriz cresce</li>
+        <li>Threads/processos: halo lido direto da memória compartilhada; distribuída: halo enviado pela rede</li>
+      </ul>
+    </div>
+  </div>
+  <span class="pag">6</span>
+</section>
+
+<!-- 7 THREADS -->
+<section class="s">
+  <h1>Versão paralela 1 — <code>threading</code></h1>
+  <div class="c55">
+    <pre><span class="k">def</span> trabalhador(t, inicio, fim):
+    r0, r1 = inicio + 1, fim + 1
+    <span class="k">for</span> g <span class="k">in</span> range(cfg.geracoes):
+        src = buffers[g % 2]          <span class="c"># leitura</span>
+        dst = buffers[(g + 1) % 2]    <span class="c"># escrita</span>
+        parciais[g+1][t] = kernel(src, dst, W, C,
+                                  r0, r1, ctx, g)
+        barreira.wait()               <span class="c"># fim da geração</span>
+        <span class="k">if</span> parar <span class="k">and</span> sum(p[1] <span class="k">for</span> p <span class="k">in</span> parciais[g+1]) == 0:
+            <span class="k">break</span>                     <span class="c"># todas decidem igual</span></pre>
+    <div>
+      <ul>
+        <li><b>Buffer duplo compartilhado</b>: lê g%2, escreve (g+1)%2</li>
+        <li><b>threading.Barrier</b>: ninguém sobrescreve o buffer da geração g enquanto outra thread ainda lê</li>
+        <li>Contagens em <b>posição exclusiva</b> por thread → sem lock</li>
+        <li>Decisão de parada <b>replicada</b> (todas veem a mesma soma após a barreira)</li>
+      </ul>
+      <div class="box" style="background:#fdf1dc;margin-top:10px">
+        <h3>Limitação: GIL</h3>
+        <p>No CPython 3.11 só uma thread executa bytecode por vez → <b>correto, mas sem ganho</b> em código CPU-bound (Beazley, 2010). Com Python 3.13t (PEP 703) o mesmo código escalaria.</p>
+      </div>
+    </div>
+  </div>
+  <span class="pag">7</span>
+</section>
+
+<!-- 8 PROCESSOS -->
+<section class="s">
+  <h1>Versão paralela 2 — <code>multiprocessing</code> <small>paralelismo real</small></h1>
+  <div class="c55">
+    <div>
+      <ul>
+        <li>Cada processo tem seu interpretador e seu GIL → usa um núcleo de verdade</li>
+        <li>Os dois buffers da grade ficam em <b>multiprocessing.shared_memory</b>: <b>nenhuma cópia</b> da matriz entre processos</li>
+        <li>Sincronização: <b>multiprocessing.Barrier</b> — 1 por geração</li>
+        <li>Contagens: <code>RawArray('q')</code> com posição exclusiva por (geração, processo)</li>
+        <li>Medimos separado: <b>tempo de computação</b> (entre a barreira inicial e o fim) e <b>tempo total</b> (inclui spawn dos processos ≈ 0,4–0,6 s no Windows)</li>
+      </ul>
+    </div>
+    <pre><span class="c"># processo pai</span>
+shms = [SharedMemory(create=<span class="k">True</span>, size=tam)
+        <span class="k">for</span> _ <span class="k">in</span> range(2)]
+shms[0].buf[:tam] = grade
+barreira = ctx.Barrier(n)
+contagens = ctx.RawArray(<span class="s2">"q"</span>, (G+1)*n*3)
+procs = [ctx.Process(target=_trabalhador,
+          args=(p, ini, fim, ..., barreira))
+         <span class="k">for</span> p, (ini, fim) <span class="k">in</span> enumerate(faixas)]
+
+<span class="c"># processo filho</span>
+buffers = [shm.buf[:tam] <span class="k">for</span> shm <span class="k">in</span> shms]
+<span class="k">for</span> g <span class="k">in</span> range(G):
+    c = kernel(buffers[g%2], buffers[(g+1)%2],
+               W, C, r0, r1, ctx, g)
+    contagens[...] = c
+    barreira.wait()</pre>
+  </div>
+  <span class="pag">8</span>
+</section>
+
+<!-- 9 DISTRIBUÍDA -->
+<section class="s">
+  <h1>Versão distribuída — sockets TCP</h1>
+  <div class="c55">
+    <svg viewBox="0 0 600 430" width="600" height="430" font-family="Segoe UI" font-size="15">
+      <defs><marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#52514e"/></marker></defs>
+      <rect x="200" y="10" width="200" height="70" rx="10" fill="#0b0b0b"/>
+      <text x="300" y="40" fill="#fff" text-anchor="middle" font-weight="700">Coordenador</text>
+      <text x="300" y="62" fill="#c3c2b7" text-anchor="middle" font-size="13">divide · agrega · decide parada</text>
+      <g font-weight="700" fill="#fff" text-anchor="middle">
+        <rect x="20" y="200" width="150" height="70" rx="10" fill="#2a78d6"/><text x="95" y="240">Trabalhador 0</text>
+        <rect x="225" y="200" width="150" height="70" rx="10" fill="#eb6834"/><text x="300" y="240">Trabalhador 1</text>
+        <rect x="430" y="200" width="150" height="70" rx="10" fill="#1baf7a"/><text x="505" y="240">Trabalhador 2</text>
+      </g>
+      <g stroke="#9a988f" stroke-dasharray="5 4" stroke-width="1.5">
+        <line x1="260" y1="80" x2="95" y2="200"/><line x1="300" y1="80" x2="300" y2="200"/><line x1="340" y1="80" x2="505" y2="200"/>
+      </g>
+      <text x="120" y="130" fill="#52514e" font-size="13">contagens (24 B)</text>
+      <g stroke="#0b0b0b" stroke-width="3"><line x1="170" y1="235" x2="225" y2="235"/><line x1="375" y1="235" x2="430" y2="235"/></g>
+      <text x="300" y="300" text-anchor="middle" fill="#0b0b0b" font-size="14">p2p: bordas (C+2 bytes) direto entre vizinhos</text>
+      <text x="300" y="340" text-anchor="middle" fill="#52514e" font-size="14">estrela: bordas sobem ao coordenador e descem aos vizinhos</text>
+      <text x="300" y="380" text-anchor="middle" fill="#52514e" font-size="13">mensagem = [tamanho 4 B][tipo 1 B][dados] · 'J' JSON de controle · 'B' bytes da grade</text>
+      <text x="300" y="405" text-anchor="middle" fill="#52514e" font-size="13">sem pickle na rede · TCP_NODELAY (Nagle desligado)</text>
+    </svg>
+    <div>
+      <ol style="font-size:19px;padding-left:22px">
+        <li>Trabalhadores conectam e informam sua porta p2p</li>
+        <li>Coordenador cria a grade e envia a cada um <b>sua faixa + 2 linhas de halo</b> e o endereço dos vizinhos</li>
+        <li>Cada um conecta ao vizinho de baixo e aceita o de cima (ordem fixa → sem deadlock)</li>
+        <li>Por geração: calcula <b>bordas primeiro</b> → envia → calcula o <b>miolo</b> enquanto as bordas trafegam → recebe halos → envia contagens</li>
+        <li>Coordenador soma e responde CONTINUA/PARA; no fim junta as faixas</li>
+      </ol>
+      <p class="note">Funciona em várias máquinas: <code>coordenador --porta 5000</code> numa, <code>trabalhador --host IP</code> nas demais.</p>
+    </div>
+  </div>
+  <span class="pag">9</span>
+</section>
+
+<!-- 10 SINCRONIZAÇÃO -->
+<section class="s">
+  <h1>Sincronização e consistência das gerações</h1>
+  <table style="font-size:17px">
+    <tr><th>Aspecto</th><th style="text-align:left">Threads</th><th style="text-align:left">Processos</th><th style="text-align:left">Distribuída</th></tr>
+    <tr><td>Memória</td><td style="text-align:left">compartilhada (mesmo processo)</td><td style="text-align:left">shared_memory (SO)</td><td style="text-align:left">privada por trabalhador</td></tr>
+    <tr><td>Fronteira</td><td style="text-align:left">lida do buffer de leitura</td><td style="text-align:left">lida do buffer de leitura</td><td style="text-align:left">mensagem TCP (1 linha p/ cada vizinho)</td></tr>
+    <tr><td>Fim de geração</td><td style="text-align:left">threading.Barrier</td><td style="text-align:left">multiprocessing.Barrier</td><td style="text-align:left">recv bloqueante dos halos (barreira local entre vizinhos)</td></tr>
+    <tr><td>Evita corrida</td><td style="text-align:left">buffer duplo + faixas disjuntas</td><td style="text-align:left">buffer duplo + faixas disjuntas</td><td style="text-align:left">não há memória compartilhada</td></tr>
+    <tr><td>Parada global</td><td style="text-align:left">soma replicada após a barreira</td><td style="text-align:left">soma replicada após a barreira</td><td style="text-align:left">redução no coordenador (allreduce)</td></tr>
+    <tr><td>Custo por geração</td><td style="text-align:left">1 barreira</td><td style="text-align:left">1 barreira entre processos</td><td style="text-align:left">2 msgs de borda + 1 contagem (+1 resposta)</td></tr>
+  </table>
+  <div class="box" style="margin-top:20px">
+    <p><b>Modelo probabilístico sem perder a consistência:</b> <code>random.random()</code> depende da ordem de visita, que muda com a partição. Usamos um gerador <b>baseado em contador</b> (SplitMix64; Salmon et al., SC'11): <code>u = hash(semente, geração, índice_global)</code> → o mesmo sorteio em qualquer divisão da matriz.</p>
+  </div>
+  <span class="pag">10</span>
+</section>
+
+<!-- 11 TESTES -->
+<section class="s">
+  <h1>Validação: todas as versões dão o mesmo resultado</h1>
+  <div class="c55">
+    <div>
+      <ul>
+        <li><code>tests/test_equivalencia.py</code> (unittest, 8 testes)</li>
+        <li>Grade inicial = <code>FakeNews.criar_grade</code> do professor</li>
+        <li>Sequencial (kernels referência e otimizado) = <code>FakeNews.py</code> original, gerações completas</li>
+        <li>Threads (1, 2, 5), processos (2, 4), distribuída p2p e estrela (1, 3) → <b>mesma grade e mesmo histórico</b></li>
+        <li>Modelo estendido probabilístico idêntico em qualquer partição</li>
+        <li>Casos de borda: mais trabalhadores que linhas, parada antecipada</li>
+        <li>Nos benchmarks cada execução grava o <b>SHA-256</b> da grade final: todas iguais</li>
+      </ul>
+    </div>
+    <pre>&gt; python -m unittest discover -s tests -v
+test_distribuido ... ok
+test_mais_trabalhadores_que_linhas ... ok
+test_processos ... ok
+test_sequencial_igual_original ... ok
+test_threads ... ok
+test_divisao_de_linhas ... ok
+test_grade_inicial_igual_original ... ok
+test_uniforme ... ok
+---------------------------------------
+Ran 8 tests in 11.2s
+OK</pre>
+  </div>
+  <span class="pag">11</span>
+</section>
+
+<!-- 12 CONFIG -->
+<section class="s">
+  <h1>Configuração experimental</h1>
+  <div class="cols">
+    <table style="font-size:18px">
+      <tr><th>Item</th><th style="text-align:left">Valor</th></tr>
+      <tr><td>Processador</td><td style="text-align:left">Intel Xeon E5-2620 v3 @ 2,40 GHz (Haswell-EP)</td></tr>
+      <tr><td>Núcleos</td><td style="text-align:left">6 físicos / 12 lógicos (Hyper-Threading)</td></tr>
+      <tr><td>Memória RAM</td><td style="text-align:left">16 GB (15,8 GB utilizáveis)</td></tr>
+      <tr><td>Sistema operacional</td><td style="text-align:left">Windows 10 Home 22H2 (build 19045), 64 bits</td></tr>
+      <tr><td>Linguagem</td><td style="text-align:left">Python — CPython 3.11.5 (MSC v.1936, 64 bits, com GIL)</td></tr>
+      <tr><td>Bibliotecas</td><td style="text-align:left">só biblioteca padrão; matplotlib 3.10 / Pillow 12 apenas para gráficos</td></tr>
+      <tr><td>Ambiente</td><td style="text-align:left">execução local; distribuída via TCP loopback (127.0.0.1), 1 processo por trabalhador</td></tr>
+    </table>
+    <div>
+      <h2>Metodologia</h2>
+      <ul style="font-size:18px">
+        <li><b>3 repetições</b> intercaladas; reportamos a <b>mediana</b></li>
+        <li>Carga fixa: <code>--sem-parada</code> (todas as gerações calculadas), limiar 2, semente 42</li>
+        <li><b>T computação</b>: só o laço de gerações (inclui barreiras e comunicação)<br><b>T total</b>: + criação do estado, processos, conexões e distribuição</li>
+        <li>Variamos: tamanho (250–2000²), gerações (5–40), % inicial (1–50%), threads/processos/trabalhadores (1–12)</li>
+        <li>Speedup S = T<sub>seq</sub>/T<sub>p</sub> &nbsp; Eficiência E = S/p &nbsp; Karp-Flatt e = (1/S − 1/p)/(1 − 1/p)</li>
+        <li>110 configurações · 330 execuções · ≈ 38 min; SHA-256 da grade igual em todas</li>
+      </ul>
+    </div>
+  </div>
+  <span class="pag">12</span>
+</section>
+
+<!-- 13 SPEEDUP -->
+<section class="s">
+  <h1>Escalabilidade forte <small>1000 × 1000, 20 gerações (T<sub>seq</sub> = 16,3 s)</small></h1>
+  <div class="c55">
+    <img class="fig" src="../experimentos/figuras/e1_speedup.png" style="max-height:540px">
+    <div>
+      <div class="box"><span class="big">6,0×</span><p>Distribuída p2p, 12 trabalhadores (2,70 s)</p></div>
+      <ul style="font-size:18px;margin-top:14px">
+        <li>p = 6 (nº de núcleos físicos): p2p <b>4,2×</b>, estrela 4,1×, multiprocessing <b>3,7×</b></li>
+        <li>De 6 → 12 o ganho cai: Hyper-Threading divide as unidades de execução do núcleo</li>
+        <li>Threads: <b>0,74×</b> — mais lento que o sequencial (GIL)</li>
+      </ul>
+    </div>
+  </div>
+  <span class="pag">13</span>
+</section>
+
+<!-- 14 EFICIÊNCIA -->
+<section class="s">
+  <h1>Tempo, eficiência e fração serial <small>E1</small></h1>
+  <div class="c55">
+    <img class="fig" src="../experimentos/figuras/e1_eficiencia.png" style="max-height:440px">
+    <table style="font-size:15px">
+      <tr><th>Versão</th><th>p</th><th>T (s)</th><th>S</th><th>E</th><th>e (KF)</th></tr>
+      <tr><td>Multiprocessing</td><td>2</td><td>8,82</td><td>1,84</td><td>92%</td><td>0,085</td></tr>
+      <tr><td></td><td>6</td><td>4,36</td><td>3,73</td><td>62%</td><td>0,121</td></tr>
+      <tr><td></td><td>12</td><td>3,06</td><td>5,32</td><td>44%</td><td>0,114</td></tr>
+      <tr><td>Distrib. p2p</td><td>2</td><td>8,70</td><td>1,87</td><td>93%</td><td>0,070</td></tr>
+      <tr><td></td><td>6</td><td>3,85</td><td>4,22</td><td>70%</td><td>0,084</td></tr>
+      <tr><td></td><td>12</td><td>2,70</td><td>6,01</td><td>50%</td><td>0,090</td></tr>
+      <tr><td>Distrib. estrela</td><td>2</td><td>9,41</td><td>1,73</td><td>86%</td><td>0,157</td></tr>
+      <tr><td></td><td>6</td><td>3,94</td><td>4,12</td><td>69%</td><td>0,091</td></tr>
+      <tr><td></td><td>12</td><td>2,83</td><td>5,75</td><td>48%</td><td>0,099</td></tr>
+      <tr><td>Threads</td><td>4</td><td>22,02</td><td>0,74</td><td>18%</td><td>—</td></tr>
+    </table>
+  </div>
+  <p class="note">Karp-Flatt entre 0,07 e 0,16, sem crescer com p: a perda não vem de um gargalo serial que cresce com p, mas de custos fixos (sincronização, cópias) e da saturação do hardware (6 núcleos físicos, banda de memória).</p>
+  <span class="pag">14</span>
+</section>
+
+<!-- 15 GIL + GARGALO -->
+<section class="s">
+  <h1>Gargalos encontrados na versão paralela</h1>
+  <div class="cols">
+    <div class="box" style="background:#fdf1dc">
+      <h3>1. GIL: threads não aceleram (0,74×)</h3>
+      <p>Com 2–8 threads o tempo <b>piora</b> de 16,3 s para ≈ 21–22 s: só uma thread executa bytecode por vez e a troca do GIL entre threads (a cada 5 ms) adiciona contenção.</p>
+      <p>A versão com threads está correta (testes) e vale para Python free-threaded 3.13t ou para Java; aqui a solução foi <b>multiprocessing</b>.</p>
+    </div>
+    <div class="box" style="background:#e6f0fb">
+      <h3>2. Acesso à memória compartilhada (corrigido)</h3>
+      <p>1ª versão: kernel lendo direto do <code>memoryview</code> da shared_memory → com p = 1 era <b>19% mais lento</b> que o sequencial.</p>
+      <p>Correção: a cada geração o processo copia <b>sua faixa + 2 linhas de halo</b> para um <code>bytearray</code> local, calcula e grava de volta só suas linhas.</p>
+      <table style="font-size:15px;margin-top:6px">
+        <tr><th>p</th><th>direto (s)</th><th>cópia local (s)</th><th>ganho</th></tr>
+        <tr><td>1</td><td>19,40</td><td>16,07</td><td>1,21×</td></tr>
+        <tr><td>6</td><td>4,66</td><td>4,36</td><td>1,07×</td></tr>
+        <tr><td>12</td><td>3,19</td><td>3,06</td><td>1,04×</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="note" style="margin-top:14px">Por que a distribuída local supera o multiprocessing? Ela já trabalha em memória privada e, sem parada automática, cada trabalhador só sincroniza com os <b>vizinhos</b> (sem barreira global com 12 processos), absorvendo pequenos desbalanceamentos.</p>
+  <span class="pag">15</span>
+</section>
+
+<!-- 16 COMUNICAÇÃO -->
+<section class="s">
+  <h1>Custo de comunicação <small>p2p × estrela</small></h1>
+  <div class="c55">
+    <img class="fig" src="../experimentos/figuras/e1_comunicacao.png" style="max-height:430px">
+    <div>
+      <ul style="font-size:18px">
+        <li>p2p: comunicação + espera = <b>0–1,7%</b> do tempo de cada trabalhador</li>
+        <li>estrela: <b>6–13%</b> — o coordenador serializa 2N mensagens por geração e vira gargalo</li>
+        <li>Volume por geração e por fronteira: 1 linha = C + 2 = <b>1002 bytes</b>; 12 trabalhadores × 20 gerações = 441 KB no total (p2p)</li>
+        <li>Cálculo ∝ área (L·C/p), comunicação ∝ perímetro (C): matriz maior ⇒ razão comunicação/cálculo menor</li>
+        <li>Otimizações: bordas calculadas e enviadas <b>antes do miolo</b> (sobreposição), <code>TCP_NODELAY</code>, mensagens binárias, sem resposta do coordenador quando a parada está desligada</li>
+      </ul>
+    </div>
+  </div>
+  <span class="pag">16</span>
+</section>
+
+<!-- 17 TAMANHO -->
+<section class="s">
+  <h1>Efeito do tamanho da matriz <small>E2 · 10 gerações · p = 6</small></h1>
+  <img class="fig" src="../experimentos/figuras/e2_tamanho.png" style="max-height:400px">
+  <div class="cols" style="margin-top:10px">
+    <p style="font-size:18px">Só computação: speedup já é 2,7–3,5× em 250²; cresce até <b>4,3× (processos)</b> e <b>4,2× (p2p)</b> em 2000².</p>
+    <p style="font-size:18px">Total: em 250² o paralelismo <b>não compensa</b> (0,65×) — criar 6 processos no Windows custa ≈ 0,5 s. Em 2000² chega a 3,9×. (Lei de Gustafson: problemas maiores escalam melhor.)</p>
+  </div>
+  <span class="pag">17</span>
+</section>
+
+<!-- 18 GERAÇÕES / PERCENTUAL -->
+<section class="s">
+  <h1>Gerações e percentual inicial <small>E3 · E4 · 1000², p = 6</small></h1>
+  <div class="cols">
+    <img class="fig" src="../experimentos/figuras/e3_geracoes.png" style="max-height:330px">
+    <img class="fig" src="../experimentos/figuras/e4_percentual.png" style="max-height:330px">
+  </div>
+  <div class="cols" style="margin-top:12px">
+    <p style="font-size:17px"><b>Mais gerações</b> amortizam o custo fixo: speedup total do multiprocessing sobe de 3,2× (5 ger.) para 4,0× (40 ger.); p2p de 3,6× para 4,3×.</p>
+    <p style="font-size:17px"><b>Mais espalhadores iniciais</b> = menos trabalho: só ignorantes contam vizinhos, e a população fica inativa rápido (12,6 s → 2,6 s). O speedup fica estável (≈ 4×) porque o trabalho se distribui uniformemente.</p>
+  </div>
+  <span class="pag">18</span>
+</section>
+
+<!-- 19 KERNEL -->
+<section class="s">
+  <h1>Otimizações computacionais do núcleo</h1>
+  <div class="c55">
+    <img class="fig" src="../experimentos/figuras/e5_kernel.png" style="max-height:330px">
+    <div>
+      <table style="font-size:16px">
+        <tr><th>Kernel otimizado + multiproc.</th><th>T (s)</th><th>S</th><th>E</th></tr>
+        <tr><td>1 (sequencial)</td><td>7,91</td><td>1,00</td><td>100%</td></tr>
+        <tr><td>2 processos</td><td>3,63</td><td>2,18</td><td>109%</td></tr>
+        <tr><td>4 processos</td><td>2,02</td><td>3,91</td><td>98%</td></tr>
+        <tr><td>6 processos</td><td>1,55</td><td>5,11</td><td>85%</td></tr>
+        <tr><td>8 processos</td><td>1,40</td><td>5,67</td><td>71%</td></tr>
+      </table>
+      <p class="note">1000², 20 gerações. Eficiência &gt; 100% em p = 2: cada processo trabalha numa faixa menor, que cabe melhor nas caches.</p>
+    </div>
+  </div>
+  <ul style="font-size:18px;margin-top:12px">
+    <li>Refatoração (bytearray + moldura + buffer duplo + contagem fundida): <b>3,5×</b> sobre o original, com resultado idêntico</li>
+    <li>Kernel otimizado (somas por coluna, pulo de linhas sem espalhadores): <b>7,5×</b>; combinado com 8 processos: ≈ <b>42×</b> menos tempo por célula que o FakeNews.py original</li>
+  </ul>
+  <span class="pag">19</span>
+</section>
+
+<!-- 20 EXTENSÕES -->
+<section class="s">
+  <h1>Melhorias no modelo <small>extensões fundamentadas na literatura</small></h1>
+  <div class="c55">
+    <div>
+      <table style="font-size:15.5px">
+        <tr><th>Extensão</th><th style="text-align:left">Regra</th></tr>
+        <tr><td>Probabilidade</td><td style="text-align:left">convence com P(k) = 1 − (1 − p)<sup>k</sup> (k contatos independentes)</td></tr>
+        <tr><td>Influenciadores</td><td style="text-align:left">contam como <b>3 vizinhos</b> quando espalham (Cha et al., 2010)</td></tr>
+        <tr><td>Bots</td><td style="text-align:left">espalham <b>sempre</b>, nunca ficam inativos (Shao et al., 2018)</td></tr>
+        <tr><td>Céticos</td><td style="text-align:left">limiar + 2 — resistência/“vacina” (Lewandowsky 2012; van der Linden 2017)</td></tr>
+      </table>
+      <p class="note" style="margin-top:10px">Mesmo kernel em todas as versões; sorteio por gerador de contador ⇒ resultados idênticos na sequencial, threads, processos e distribuída. Custo: 1,75× o do modelo base, mas o speedup <b>aumenta</b> (4,5× com p = 6) — mais cálculo por byte comunicado.</p>
+    </div>
+    <img class="fig" src="../experimentos/figuras/modelo_espalhadores.png" style="max-height:330px">
+  </div>
+  <span class="pag">20</span>
+</section>
+
+<!-- 21 ALCANCE -->
+<section class="s">
+  <h1>Resultados do modelo e análise probabilística <small>200², 3% inicial, limiar 2</small></h1>
+  <div class="cols">
+    <img class="fig" src="../experimentos/figuras/modelo_alcance.png" style="max-height:290px">
+    <table style="font-size:15.5px">
+      <tr><th>Cenário (10 sementes)</th><th>Alcance médio</th><th>Desvio</th></tr>
+      <tr><td>Original determinístico</td><td>32,1%</td><td>—</td></tr>
+      <tr><td>Probabilístico p = 0,85</td><td>23,6%</td><td>2,5</td></tr>
+      <tr><td>+ 1% influenciadores</td><td>43,5%</td><td>3,7</td></tr>
+      <tr><td>+ 0,2% bots</td><td>35,0%</td><td>2,8</td></tr>
+      <tr><td>+ 30% céticos</td><td>6,1%</td><td>0,2</td></tr>
+      <tr><td>Combinado</td><td>8,4%</td><td>0,3</td></tr>
+    </table>
+  </div>
+  <img class="fig" src="../experimentos/figuras/mosaico_base.png" style="max-height:175px;margin-top:10px">
+  <p class="note">1% de influenciadores quase dobra o alcance; 30% de céticos o derruba para ~6%: educação midiática pesa mais que bots. Animação: <code>experimentos/figuras/animacao.gif</code>.</p>
+  <span class="pag">21</span>
+</section>
+
+<!-- 22 LIMITAÇÕES -->
+<section class="s">
+  <h1>Gargalos e limitações observadas</h1>
+  <div class="cols">
+    <ul style="font-size:18.5px">
+      <li><b>GIL</b>: threads não escalam em CPython 3.11 (0,74×)</li>
+      <li><b>Hardware</b>: 6 núcleos físicos; além de 6, o Hyper-Threading rende pouco (eficiência 62% → 44%)</li>
+      <li><b>Custo fixo</b> de criar processos (spawn no Windows ≈ 0,5 s) e conexões: domina em grades pequenas</li>
+      <li><b>Barreira global</b> a cada geração: o processo mais lento dita o ritmo</li>
+    </ul>
+    <ul style="font-size:18.5px">
+      <li>Distribuída testada em <b>loopback</b> (uma máquina): latência de rede real (~0,1–1 ms) e banda não foram medidas; o código suporta várias máquinas</li>
+      <li><b>Balanceamento estático</b>: no kernel otimizado o custo depende dos dados (linhas sem espalhadores são puladas)</li>
+      <li>Modelo em grade regular: não representa redes sociais reais (grafos livres de escala)</li>
+      <li>Python puro: ~1 M células/s por núcleo — C/Java seria ~50–100× mais rápido</li>
+    </ul>
+  </div>
+  <span class="pag">22</span>
+</section>
+
+<!-- 23 DIFICULDADES -->
+<section class="s">
+  <h1>Dificuldades encontradas</h1>
+  <ul>
+    <li><b>Provar equivalência</b> entre versões: resolvido com um único kernel compartilhado + testes que comparam a grade (SHA-256) e o histórico com o FakeNews.py original</li>
+    <li><b>Aleatoriedade em paralelo</b>: <code>random</code> dependia da ordem de visita → gerador baseado em contador (SplitMix64)</li>
+    <li><b>Deadlock</b> ao abrir as conexões p2p: resolvido com ordem fixa (conecta ao vizinho de baixo, depois aceita o de cima)</li>
+    <li><b>Parada consistente</b>: todos precisam parar na mesma geração → redução global (coordenador) / soma replicada após a barreira</li>
+    <li><b>Windows usa spawn</b>: funções-alvo no nível do módulo, liberar <code>memoryview</code> antes de fechar a shared_memory</li>
+    <li><b>Medir de forma justa</b>: separar tempo de computação do tempo total; carga fixa (<code>--sem-parada</code>); mediana de 3 repetições</li>
+  </ul>
+  <span class="pag">23</span>
+</section>
+
+<!-- 24 MELHORIAS -->
+<section class="s">
+  <h1>Melhorias e inovações implementadas</h1>
+  <table style="font-size:16.5px">
+    <tr><th>#</th><th style="text-align:left">Melhoria</th><th style="text-align:left">Justificativa / evidência</th></tr>
+    <tr><td>1</td><td style="text-align:left">Modelo probabilístico com gerador de contador</td><td style="text-align:left">contatos independentes; resultado idêntico em qualquer partição (Salmon et al., 2011)</td></tr>
+    <tr><td>2</td><td style="text-align:left">Influenciadores digitais (peso 3)</td><td style="text-align:left">alcance 24% → 44% com só 1% da população</td></tr>
+    <tr><td>3</td><td style="text-align:left">Bots automatizados</td><td style="text-align:left">fonte persistente: a propagação nunca se extingue</td></tr>
+    <tr><td>4</td><td style="text-align:left">Resistência à propagação (céticos)</td><td style="text-align:left">alcance 24% → 6% com 30% de céticos</td></tr>
+    <tr><td>5</td><td style="text-align:left">Otimizações do núcleo (moldura, buffer duplo, somas por coluna)</td><td style="text-align:left">3,5× a 7,5× sobre o original, resultado idêntico</td></tr>
+    <tr><td>6</td><td style="text-align:left">Redução de comunicação: p2p + sobreposição cálculo/comunicação</td><td style="text-align:left">comunicação 0–1,7% (p2p) vs 6–13% (estrela)</td></tr>
+    <tr><td>7</td><td style="text-align:left">Cópia local faixa + halo no multiprocessing</td><td style="text-align:left">gargalo medido e corrigido: até 1,21×</td></tr>
+    <tr><td>8</td><td style="text-align:left">Visualização (GIF, mosaicos) e estatísticas adicionais</td><td style="text-align:left">pico, geração do pico, alcance, taxa de crescimento, Monte Carlo com 10 sementes</td></tr>
+    <tr><td>9</td><td style="text-align:left">Testes automatizados de equivalência</td><td style="text-align:left">8 testes; SHA-256 idêntico nas 330 execuções</td></tr>
+  </table>
+  <span class="pag">24</span>
+</section>
+
+<!-- 25 CONTRIBUIÇÃO -->
+<section class="s">
+  <h1>Contribuição individual</h1>
+  <table style="font-size:18px">
+    <tr><th>Integrante</th><th style="text-align:left">Responsabilidades</th></tr>
+    <tr><td>Matheus Mondaini Alegre de Miranda<br><span class="note">RA 2504219</span></td><td style="text-align:left">Refatoração sequencial, núcleo <code>modelo.py</code> e kernels otimizados; versão distribuída com sockets (protocolo, p2p/estrela, halo); testes de equivalência; slides</td></tr>
+    <tr><td>Leonardo Freitas dos Santos<br><span class="note">RA 2465302</span></td><td style="text-align:left">Versões paralelas (threads e multiprocessing), sincronização por barreira e correção do gargalo de memória compartilhada; experimentos, gráficos e análise de desempenho; extensões do modelo</td></tr>
+    <tr><td>Vinicius Henrique de Oliveira Silva<br><span class="note">RA 2525925</span></td><td style="text-align:left">Apresentação da análise de desempenho (speedup, eficiência, custo de comunicação)</td></tr>
+    <tr><td>Carlos Haruhiko Iwata Junior<br><span class="note">RA 1632752</span></td><td style="text-align:left">Apresentação das extensões do modelo (probabilidade, influenciadores, bots, céticos)</td></tr>
+  </table>
+  <p class="note" style="margin-top:18px">IA generativa (Claude, Anthropic) foi usada como apoio na implementação e na documentação — ver referências.</p>
+  <span class="pag">25</span>
+</section>
+
+<!-- 26 CONCLUSÕES -->
+<section class="s">
+  <h1>Conclusões</h1>
+  <ul>
+    <li>As três versões preservam <b>exatamente</b> o comportamento do código original (inclusive com as extensões probabilísticas)</li>
+    <li>Paralelismo real em Python exige <b>processos</b>: multiprocessing chega a <b>5,3×</b> e a distribuída p2p a <b>6,0×</b> com 12 trabalhadores; threads ficam presas ao GIL</li>
+    <li>A decomposição por faixas com halo comunica apenas O(C) bytes por fronteira: com p2p a comunicação é &lt; 2% do tempo</li>
+    <li>Paralelizar compensa para grades grandes e muitas gerações; em grades pequenas o custo fixo domina</li>
+    <li>Otimizar o algoritmo (7,5×) rendeu tanto quanto paralelizar — e os dois se somam (≈ 42×)</li>
+    <li>No modelo: influenciadores ampliam e céticos contêm a fake news muito mais que bots</li>
+  </ul>
+  <span class="pag">26</span>
+</section>
+
+<!-- 27 REFERÊNCIAS -->
+<section class="s">
+  <h1>Referências <small>(1/2)</small></h1>
+  <ul class="refs">
+    <li>DALEY, D. J.; KENDALL, D. G. Epidemics and rumours. <i>Nature</i>, 204, p. 1118, 1964.</li>
+    <li>MAKI, D. P.; THOMPSON, M. <i>Mathematical Models and Applications</i>. Prentice-Hall, 1973.</li>
+    <li>KERMACK, W. O.; McKENDRICK, A. G. A contribution to the mathematical theory of epidemics. <i>Proc. R. Soc. A</i>, 115, p. 700–721, 1927.</li>
+    <li>MORENO, Y.; NEKOVEE, M.; PACHECO, A. F. Dynamics of rumor spreading in complex networks. <i>Phys. Rev. E</i>, 69, 066130, 2004.</li>
+    <li>WOLFRAM, S. Statistical mechanics of cellular automata. <i>Rev. Mod. Phys.</i>, 55(3), p. 601–644, 1983.</li>
+    <li>GRANOVETTER, M. Threshold models of collective behavior. <i>Am. J. Sociology</i>, 83(6), p. 1420–1443, 1978.</li>
+    <li>WATTS, D. J. A simple model of global cascades on random networks. <i>PNAS</i>, 99(9), p. 5766–5771, 2002.</li>
+    <li>VOSOUGHI, S.; ROY, D.; ARAL, S. The spread of true and false news online. <i>Science</i>, 359(6380), p. 1146–1151, 2018.</li>
+    <li>LAZER, D. M. J. et al. The science of fake news. <i>Science</i>, 359(6380), p. 1094–1096, 2018.</li>
+    <li>SHAO, C. et al. The spread of low-credibility content by social bots. <i>Nature Communications</i>, 9, 4787, 2018.</li>
+    <li>FERRARA, E. et al. The rise of social bots. <i>Communications of the ACM</i>, 59(7), p. 96–104, 2016.</li>
+    <li>CHA, M. et al. Measuring user influence in Twitter: the million follower fallacy. <i>ICWSM</i>, 2010.</li>
+    <li>LEWANDOWSKY, S. et al. Misinformation and its correction. <i>Psychological Science in the Public Interest</i>, 13(3), p. 106–131, 2012.</li>
+    <li>VAN DER LINDEN, S. et al. Inoculating the public against misinformation about climate change. <i>Global Challenges</i>, 1(2), 2017.</li>
+  </ul>
+  <span class="pag">27</span>
+</section>
+
+<section class="s">
+  <h1>Referências <small>(2/2)</small></h1>
+  <ul class="refs">
+    <li>FOSTER, I. <i>Designing and Building Parallel Programs</i>. Addison-Wesley, 1995.</li>
+    <li>GRAMA, A. et al. <i>Introduction to Parallel Computing</i>. 2. ed. Addison-Wesley, 2003.</li>
+    <li>PACHECO, P. <i>An Introduction to Parallel Programming</i>. Morgan Kaufmann, 2011.</li>
+    <li>AMDAHL, G. M. Validity of the single processor approach to achieving large scale computing capabilities. <i>AFIPS SJCC</i>, p. 483–485, 1967.</li>
+    <li>GUSTAFSON, J. L. Reevaluating Amdahl's law. <i>Communications of the ACM</i>, 31(5), p. 532–533, 1988.</li>
+    <li>KARP, A. H.; FLATT, H. P. Measuring parallel processor performance. <i>Communications of the ACM</i>, 33(5), p. 539–543, 1990.</li>
+    <li>TANENBAUM, A. S.; VAN STEEN, M. <i>Distributed Systems: Principles and Paradigms</i>. 2. ed. Pearson, 2007.</li>
+    <li>COULOURIS, G. et al. <i>Distributed Systems: Concepts and Design</i>. 5. ed. Addison-Wesley, 2011.</li>
+    <li>SALMON, J. K. et al. Parallel random numbers: as easy as 1, 2, 3. <i>SC'11</i>, ACM, 2011.</li>
+    <li>STEELE, G. L.; LEA, D.; FLOOD, C. H. Fast splittable pseudorandom number generators. <i>OOPSLA</i>, 2014.</li>
+    <li>BEAZLEY, D. Understanding the Python GIL. <i>PyCon</i>, 2010.</li>
+    <li>GROSS, S. PEP 703 – Making the Global Interpreter Lock Optional in CPython, 2023.</li>
+    <li>NAGLE, J. RFC 896 – Congestion Control in IP/TCP Internetworks, 1984.</li>
+    <li>PYTHON SOFTWARE FOUNDATION. Python 3.11 Documentation: threading, multiprocessing, shared_memory, socket.</li>
+    <li>ANTHROPIC. Claude (IA generativa), 2026 — apoio na estruturação do código, scripts de experimento e redação; conteúdo revisado e validado pelo grupo.</li>
+  </ul>
+  <span class="pag">28</span>
+</section>
+
+<script>
+  // Modo de inspeção: apresentacao.html#7 mostra só o slide 7 (usado para gerar miniaturas)
+  (function(){ var n = parseInt(location.hash.slice(1)); if (!n) return;
+    document.querySelectorAll('.s').forEach(function(s,i){ if (i+1 !== n) s.style.display='none'; else s.style.margin='0'; });
+    document.body.style.background = '#fcfcfb'; })();
+</script>
+</body>
+</html>
